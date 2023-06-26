@@ -5,7 +5,7 @@ Code accompanying the paper:
 **Trajectory Generation, Control, and Safety with Denoising Diffusion Probabilistic Models**\
 Nicolò Botteghi, Federico Califano, Mannes Poel, Christoph Brune. \
 
-The paper was accepted at New Frontiers in Learning, Control, and Dynamical Systems - Workshop at the International Conference on Machine Learning (ICML) 2023. \
+The paper has been accepted at New Frontiers in Learning, Control, and Dynamical Systems - Workshop at the International Conference on Machine Learning (ICML) 2023. \
 The paper can be found at: [Link](add link to arxiv). 
 
 ![alt text](Figure_1.png)

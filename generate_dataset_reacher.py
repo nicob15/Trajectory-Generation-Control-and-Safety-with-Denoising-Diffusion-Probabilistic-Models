@@ -2,7 +2,7 @@ import numpy as np
 import os
 import torch
 import argparse
-from logger import Logger
+from utils.logger import Logger
 from envs.reacher import ConstrainedReacherEnv
 
 parser = argparse.ArgumentParser()

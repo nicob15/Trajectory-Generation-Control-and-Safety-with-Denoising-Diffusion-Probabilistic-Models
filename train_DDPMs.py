@@ -2,25 +2,21 @@ import copy
 
 import torch
 import torch.utils
-
 import os
-from utils import load_pickle
-from replay_buffer import ReplayBufferBarrier as ReplayBuffer
+from utils.utils import load_pickle
+from utils.replay_buffer import ReplayBufferBarrier as ReplayBuffer
 import numpy as np
-
-from plotter_reacher import plot_results
-from models import GaussianDiffusion as ProbDiffusion
-from trainer import train_ProbDiffusion as train
-
+from utils.plotter_reacher import plot_results
+from utils.models import GaussianDiffusion as ProbDiffusion
 from diffuser.models.temporal import TemporalUnet, ValueFunction
-from models import ValueDiffusion
-from trainer import train_ValueDiffusion as train_valuefunction
-from trainer import train_CbfDiffusion as train_cbfdiffusion
-from trainer import test_ValueDiffusion as test_valuefunction
-from trainer import test_ProbDiffusion as test_probdiffusion
-from trainer import test_CbfDiffusion as test_cbfdiffusion
+from utils.models import ValueDiffusion
+from utils.trainer import train_ProbDiffusion as train
+from utils.trainer import train_ValueDiffusion as train_valuefunction
+from utils.trainer import train_CbfDiffusion as train_cbfdiffusion
+from utils.trainer import test_ValueDiffusion as test_valuefunction
+from utils.trainer import test_ProbDiffusion as test_probdiffusion
+from utils.trainer import test_CbfDiffusion as test_cbfdiffusion
 import gc
-
 from datetime import datetime
 import argparse
 

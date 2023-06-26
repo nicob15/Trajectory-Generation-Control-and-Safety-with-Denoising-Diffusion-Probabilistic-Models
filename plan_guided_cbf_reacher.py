@@ -2,34 +2,25 @@ import numpy as np
 import os
 import torch
 import argparse
-
-from logger import Logger
-from utils import stack_frames
-
-from Envs.reacher import ConstrainedReacherEnv
-from guided_policy import ValueGuide, CbfGuide
+from utils.logger import Logger
+from envs.reacher import ConstrainedReacherEnv
+from utils.guided_policy import ValueGuide, CbfGuide
 from diffuser.models.temporal import TemporalUnet, ValueFunction
-from models import GaussianDiffusion as ProbDiffusion
-from models import CbfDiffusion
-from guided_policy import n_step_doubleguided_p_sample
-from guided_policy import n_step_guided_p_sample
+from utils.models import GaussianDiffusion as ProbDiffusion
+from utils.models import CbfDiffusion
+from utils.guided_policy import n_step_doubleguided_p_sample
+from utils.guided_policy import n_step_guided_p_sample
 import diffuser.utils as utils
 import einops
-import copy
 import matplotlib.pyplot as plt
 from matplotlib import animation
 import matplotlib as mpl
 mpl.rcParams['animation.ffmpeg_path'] = '/usr/bin/ffmpeg'
-
-
 import copy
 import time
 
-
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--env-name', type=str, default='Reacher-v1',
-                    help='Environment name.')
 parser.add_argument('--num-episodes', type=int, default=25,
                     help='Number of episodes.')
 parser.add_argument('--state-dim', type=int, default=8,
@@ -87,7 +78,7 @@ seed = args.seed
 max_steps = 200
 value_only = False
 env = ConstrainedReacherEnv(max_torque=1.0, target=(0.0, 1.4), max_steps=max_steps, epsilon=0.3, reset_target_reached=True,
-                            bonus_reward=False, barrier_type='circle', location=(1.5, 1.5), radius=1.0, gamma=0.99, initial_state=np.array([-2.8, 0.0, -0.1, -0.1]))
+                            bonus_reward=False, barrier_type='circle', location=(1.5, 1.5), radius=1.0, lambda_cbf=0.99, initial_state=np.array([-2.8, 0.0, -0.1, -0.1]))
 state_dim = env.observation_space.shape[0]
 action_dim = 2
 
