@@ -4,7 +4,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-from losses import loss_bce
+from utils.losses import loss_bce
 
 from diffuser.utils.progress import Progress, Silent
 

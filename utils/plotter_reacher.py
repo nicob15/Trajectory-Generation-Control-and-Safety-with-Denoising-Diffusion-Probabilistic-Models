@@ -275,8 +275,7 @@ def run_diffusion(model, cond, **diffusion_kwargs):
     ## format `conditions` input for model
     conditions = cond
 
-    samples, _, diffusion = model.conditional_sample(conditions,
-                                                    return_chain=True, verbose=False, **diffusion_kwargs)
+    samples, _, diffusion = model.conditional_sample(conditions, return_chain=True, verbose=False, **diffusion_kwargs)
 
     diffusion = diffusion.cpu().numpy()
     samples = samples.cpu().numpy()
@@ -288,7 +287,8 @@ def run_diffusion(model, cond, **diffusion_kwargs):
     return observations, samples
 
 
-def plot_results(diffusion, ema_diffusion, test_loader, save_dir, num_timesteps=50, true_dyn=False, epoch=0, plot_mean_traj=True, num_realizations=100):
+def plot_results(diffusion, ema_diffusion, test_loader, save_dir, num_timesteps=50, true_dyn=False, epoch=0,
+                 plot_mean_traj=True, num_realizations=100):
 
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
@@ -316,7 +316,7 @@ def plot_results(diffusion, ema_diffusion, test_loader, save_dir, num_timesteps=
                       num_timesteps - 1: states[0, -1, :].reshape(1, 8)
                      }
 
-        diff, traj = run_diffusion(ema_diffusion, conditions, states, n_samples=1)
+        diff, traj = run_diffusion(ema_diffusion, conditions)
 
         plot_diffusion(diff, save_dir_1, name='diffusion_steps_ ' + str(epoch))
         save_diffusion_as_mp4(diff, save_dir_1, name='diffusion_step_' + str(epoch) + '.mp4')
@@ -331,7 +331,7 @@ def plot_results(diffusion, ema_diffusion, test_loader, save_dir, num_timesteps=
             s1_list = []
             s2_list = []
             for k in range(num_realizations):
-                diff, traj = run_diffusion(ema_diffusion, conditions, states, n_samples=1)
+                diff, traj = run_diffusion(ema_diffusion, conditions)
                 s1_pred = traj[:, :, 2:5].reshape(1, num_timesteps, 3)
                 s2_pred = traj[:, :, 5:8].reshape(1, num_timesteps, 3)
                 s1_list.append(s1_pred)
@@ -347,7 +347,7 @@ def plot_results(diffusion, ema_diffusion, test_loader, save_dir, num_timesteps=
         conditions = {0: states[0, 0, :].reshape(1, 8),
                     num_timesteps - 1: states[0, -1, :].reshape(1, 8)}
 
-        diff, traj = run_diffusion(diffusion, conditions, states, n_samples=1)
+        diff, traj = run_diffusion(diffusion, conditions)
 
         plot_diffusion(diff, save_dir_2, name='diffusion_steps_ ' + str(epoch))
         save_diffusion_as_mp4(diff, save_dir_2, name='diffusion_step_' + str(epoch) + '.mp4')
@@ -362,7 +362,7 @@ def plot_results(diffusion, ema_diffusion, test_loader, save_dir, num_timesteps=
             s1_list = []
             s2_list = []
             for k in range(num_realizations):
-                diff, traj = run_diffusion(diffusion, conditions, states, n_samples=1)
+                diff, traj = run_diffusion(diffusion, conditions)
                 s1_pred = traj[:, :, 2:5].reshape(1, num_timesteps, 3)
                 s2_pred = traj[:, :, 5:8].reshape(1, num_timesteps, 3)
                 s1_list.append(s1_pred)

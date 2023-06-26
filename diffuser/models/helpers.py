@@ -222,8 +222,8 @@ class ValueL2(ValueLoss):
 class CrossEntropy(ValueLoss):
 
     def _loss(self, pred, target):
-        pred = pred.reshape(pred.shape[0] * 16, -1)
-        target = target.reshape(target.shape[0] * 16, ).type(torch.long)
+        pred = pred.reshape(pred.shape[0] * int(pred.shape[1]/2), 2)
+        target = target.reshape(target.shape[0] * target.shape[1], ).type(torch.long)
         return F.cross_entropy(pred, target)
 
 Losses = {

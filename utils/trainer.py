@@ -1,5 +1,4 @@
-import random
-from losses import *
+from utils.losses import *
 import numpy as np
 
 class EMA():

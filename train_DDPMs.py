@@ -48,6 +48,8 @@ parser.add_argument('--sequence-length', type=int, default=16,
                     help='Sequence length.')
 parser.add_argument('--diffusion-steps', type=int, default=50,
                     help='Number of diffusion steps.')
+parser.add_argument('--num-classes', type=int, default=2,
+                    help='Number of classes (safe and unsafe).')
 
 parser.add_argument('--experiment', type=str, default='Reacher',
                     help='Experiment.')
@@ -105,6 +107,7 @@ act_dim = args.action_dim
 state_dim = args.state_dim
 h_dim = args.hidden_dim
 sequence_length = args.sequence_length
+num_classes = args.num_classes
 
 # experiment and model type
 exp = args.experiment
@@ -173,7 +176,7 @@ def main(exp='Reacher', mtype='ProbDiffusion', training_dataset='reacher_train.p
 
     if train_cbfvalue:
         cbf_model = ValueFunction(horizon, transition_dim, dim=32, dim_mults=(1, 2, 4, 8), attention=use_attention,
-                                  out_dim=horizon, final_sigmoid=True)
+                                  out_dim=num_classes*horizon, final_sigmoid=True)
         cbf_diffusion = ValueDiffusion(cbf_model, horizon, observation_dim, action_dim, n_timesteps=nr_diffusion_steps,
                                        loss_type='cross_entropy', clip_denoised=False, predict_epsilon=False,
                                        action_weight=1.0, loss_discount=1.0, loss_weights=None)
@@ -213,7 +216,7 @@ def main(exp='Reacher', mtype='ProbDiffusion', training_dataset='reacher_train.p
 
     counter = 0
     train_loader = ReplayBuffer(act_dim=act_dim, size=len(data), state_dim=state_dim)
-    for d in data[:30000]:
+    for d in data:
         train_loader.store(d[0].astype('float32'),
                            d[1].astype('float32'),
                            d[2],
@@ -226,7 +229,7 @@ def main(exp='Reacher', mtype='ProbDiffusion', training_dataset='reacher_train.p
 
     test_loader = ReplayBuffer(act_dim=act_dim, size=len(data_test), state_dim=state_dim)
     counter_t = 0
-    for dt in data_test[:3000]:
+    for dt in data_test:
         test_loader.store(dt[0].astype('float32'),
                           dt[1].astype('float32'),
                           dt[2],

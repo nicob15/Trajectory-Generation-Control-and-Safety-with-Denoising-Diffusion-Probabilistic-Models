@@ -1,8 +1,6 @@
 from typing import Optional
-
 import numpy as np
 from numpy import cos, pi, sin
-
 from gym import core, spaces
 from gym.error import DependencyNotInstalled
 import math
