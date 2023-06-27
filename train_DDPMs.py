@@ -50,7 +50,6 @@ parser.add_argument('--diffusion-steps', type=int, default=50,
                     help='Number of diffusion steps.')
 parser.add_argument('--num-classes', type=int, default=2,
                     help='Number of classes (safe and unsafe).')
-
 parser.add_argument('--experiment', type=str, default='Reacher',
                     help='Experiment.')
 parser.add_argument('--model-type', type=str, default='ProbDiffusion',
@@ -59,16 +58,13 @@ parser.add_argument('--training-dataset', type=str, default='reacher_train.pkl',
                     help='Training dataset.')
 parser.add_argument('--testing-dataset', type=str, default='reacher_test.pkl',
                     help='Testing dataset.')
-
 parser.add_argument('--log-interval', type=int, default=10,
                     help='How many batches to wait before saving')
 parser.add_argument('--plot-interval', type=int, default=50,
                     help='How many batches to wait before plotting')
-
 parser.add_argument('--seed', type=int, default=1,
                     help='Random seed (default: 1).')
-
-parser.add_argument('--use_attention', default=True,
+parser.add_argument('--use-attention', default=True,
                     help='Use attention layer in temporal U-net.')
 parser.add_argument('--train-value', default=True,
                     help='Train value function or not.')

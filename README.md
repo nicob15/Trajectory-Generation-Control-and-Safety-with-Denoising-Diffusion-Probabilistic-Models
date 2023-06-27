@@ -36,6 +36,11 @@ python generate_dataset_recher.py --test=True --seed=3
 python train_DDPM.py
 ```
 
+## Generate planning
+```bash
+python guided_planning.py
+```
+
 ## Cite
 If you use this code in your own work, please cite our paper:
 ```

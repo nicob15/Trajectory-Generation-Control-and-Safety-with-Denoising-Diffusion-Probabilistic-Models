@@ -21,25 +21,59 @@ import time
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--num-episodes', type=int, default=25,
-                    help='Number of episodes.')
+parser.add_argument('--num-targets', type=int, default=1,
+                    help='Number of targets.')
+parser.add_argument('--num-steps', type=int, default=100,
+                    help='Number of steps.')
+parser.add_argument('--batch-size', type=int, default=64,
+                    help='Batch size (number of generated planning).')
 parser.add_argument('--state-dim', type=int, default=8,
                     help='Number of episodes.')
+parser.add_argument('--action-dim', type=int, default=2,
+                    help='Action dimension.')
+parser.add_argument('--max_torque', type=float, default=1,
+                    help='Maximum torque for the actuators.')
+parser.add_argument('--epsilon', type=float, default=0.3,
+                    help='Tolerance for reaching the target.')
+parser.add_argument('--target-location', type=float, default=(1.5, 1.5),
+                    help='Location of the obstacle.')
+parser.add_argument('--obstacle-location', type=float, default=(1.5, 1.5),
+                    help='Location of the obstacle.')
+parser.add_argument('--obstacle-radius', type=float, default=1.0,
+                    help='Radius of the obstacle (circular obstacle).')
+parser.add_argument('--lambda-cbf', type=float, default=0.99,
+                    help='Lambda coefficient control barrier function.')
+parser.add_argument('--sequence-length', type=int, default=16,
+                    help='Sequence length.')
+parser.add_argument('--diffusion-steps', type=int, default=50,
+                    help='Number of diffusion steps.')
+parser.add_argument('--use-attention', default=True,
+                    help='Use attention layer in temporal U-net.')
+parser.add_argument('--valuye-only', default=False,
+                    help='Use only value function model for guided planning '
+                         'or the combination of value and cbf classifier.')
 parser.add_argument('--observation-dim-w', type=int, default=84,
                     help='Width of the input measurements (RGB images).')
 parser.add_argument('--observation-dim-h', type=int, default=84,
                     help='Height of the input measurements (RGB images).')
 parser.add_argument('--save-traj', default=False,
                     help='Generate training or testing dataset.')
-parser.add_argument('--trajectory-dataset', type=str, default='cbf_reacher_trajectories.pkl',
+parser.add_argument('--trajectory-dataset', type=str, default='reacher_trajectories.pkl',
                     help='Training dataset.')
 parser.add_argument('--seed', type=int, default=1,
                     help='Random seed (default: 1).')
+parser.add_argument('--experiment', type=str, default='Reacher',
+                    help='Experiment.')
+parser.add_argument('--model-type', type=str, default='ProbDiffusion',
+                    help='Model type.')
+parser.add_argument('--num-classes', type=int, default=2,
+                    help='Number of classes (safe and unsafe).')
+
 
 args = parser.parse_args()
 
 
-def save_frames_as_mp4(frames, filename='doublependulum_animation.mp4', folder='Results/', idx=0):
+def save_frames_as_mp4(frames, filename='reacher_animation.mp4', folder='results/', idx=0):
 
     #Mess with this to change frame size
     plt.figure(figsize=(frames[0].shape[1] / 72.0, frames[0].shape[0] / 72.0), dpi=72)
@@ -59,55 +93,50 @@ def save_frames_as_mp4(frames, filename='doublependulum_animation.mp4', folder='
     FFwriter = animation.FFMpegWriter(fps=10)
     anim.save(save_dir + str(idx) + '_' + filename, writer=FFwriter)
 
-def save_frames_as_png(frames, filename='snapshots', folder='Results/'):
-    save_dir = folder + 'videos/snapshots/'
+def save_frames_as_png(frames, filename='snapshots', folder='results/'):
+    save_dir = folder + 'videos/snapshots'
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
     for i in range(len(frames)):
         plt.imshow(frames[i])
         plt.savefig(save_dir + '/' + filename + '_' + str(i) + '.png')
-        #plt.close()
 
-env_name = args.env_name
 save_traj = args.save_traj
 if save_traj:
     data_file_name = args.trajectory_dataset
-obs_dim1 = args.observation_dim_w
-obs_dim2 = args.observation_dim_h
-num_episodes = args.num_episodes
+max_steps = args.num_steps
 seed = args.seed
 
-max_steps = 200
 value_only = False
-env = ConstrainedReacherEnv(max_torque=1.0, target=(0.0, 1.4), max_steps=max_steps, epsilon=0.3, reset_target_reached=True,
-                            bonus_reward=False, barrier_type='circle', location=(1.5, 1.5), radius=1.0, lambda_cbf=0.99, initial_state=np.array([-2.8, 0.0, -0.1, -0.1]))
-state_dim = env.observation_space.shape[0]
-action_dim = 2
+env = ConstrainedReacherEnv(min_torque=-args.max_torque, max_torque=args.max_torque, target=args.target_location,
+                            max_steps=max_steps, epsilon=args.epsilon, reset_target_reached=True, bonus_reward=False,
+                            barrier_type='circle', location=args.obstacle_location, radius=args.obstacle_radius,
+                            lambda_cbf=args.lambda_cbf, initial_state=np.array([-2.8, 0.0, -0.1, -0.1]))
+state_dim = args.state_dim
+action_dim = args.action_dim
 
 directory = os.path.dirname(os.path.abspath(__file__))
-folder = os.path.join(directory + '/Data/')
+folder = os.path.join(directory + '/data/')
 logger = Logger(folder)
 
 # Set seeds
-#env.seed(seed)
 env.action_space.seed(seed)
 torch.manual_seed(seed)
 np.random.seed(seed)
 
-#default for pendulum-v1
-horizon = 16  # planning horizon
+horizon = args.sequence_length  # planning horizon
 observation_dim = state_dim
 transition_dim = observation_dim + action_dim
-nr_diffusion_steps = 50
-use_attention = True
+nr_diffusion_steps = args.diffusion_steps
+use_attention = args.use_attention
 
-exp = 'Reacher'
-mtype = 'ProbDiffusion'
-noise_level = 0.0
-save_pth_dir = directory + '/Results/' + str(exp) + '/' + str(mtype) + '/Noise_level_' + str(noise_level)
+exp = args.experiment
+mtype = args.model_type
+save_pth_dir = directory + '/results/' + str(exp) + '/' + str(mtype)
 if not os.path.exists(save_pth_dir):
     os.makedirs(save_pth_dir)
 
 model = TemporalUnet(horizon, transition_dim, dim=32, dim_mults=(1, 2, 4, 8), attention=use_attention)
-
 
 if value_only:
     diffusion = ProbDiffusion(model, horizon, observation_dim, action_dim, n_timesteps=nr_diffusion_steps,
@@ -118,40 +147,27 @@ else:
                           loss_type='l2', clip_denoised=False, predict_epsilon=False,
                           action_weight=1.0, loss_discount=1.0, loss_weights=None)
 ema_diffusion = copy.deepcopy(diffusion).cuda()
-
-#checkpoint = torch.load(save_pth_dir + '/random_policy/200_epochs/ProbDiff_Model_latest.pth')
-checkpoint = torch.load(save_pth_dir + '/ProbDiff_Model_latest.pth')
-#checkpoint = torch.load(save_pth_dir + '/optimal_policy/ProbDiff_Model_latest.pth')
-#checkpoint = torch.load(save_pth_dir + '/random_policy/ProbDiff_Model_16-05-2023_16h-27m-55s.pth')
+checkpoint = torch.load(save_pth_dir + '/ProbDiff_Model_best.pth')
 diffusion.model.load_state_dict(checkpoint['model'])
 ema_diffusion.model.load_state_dict(checkpoint['ema_model'])
 
 value_model = ValueFunction(horizon, transition_dim, dim=32, dim_mults=(1, 2, 4, 8), attention=use_attention, final_sigmoid=False)
 value_diffusion = ValueGuide(value_model)
 ema_value_diffusion = copy.deepcopy(value_diffusion).cuda()
-#checkpoint = torch.load(save_pth_dir + '/random_policy/200_epochs/ValueDiff_Model_latest.pth')
-checkpoint = torch.load(save_pth_dir + '/ValueDiff_Model_latest.pth')
-#checkpoint = torch.load(save_pth_dir + '/optimal_policy/ValueDiff_Model_latest.pth')
-#checkpoint = torch.load(save_pth_dir + '/random_policy/ValueDiff_Model_16-05-2023_16h-27m-55s.pth')
+checkpoint = torch.load(save_pth_dir + '/ValueDiff_Model_best.pth')
 value_diffusion.model.load_state_dict(checkpoint['model'])
 ema_value_diffusion.model.load_state_dict(checkpoint['ema_model'])
 
-cbf_model = ValueFunction(horizon, transition_dim, dim=32, dim_mults=(1, 2, 4, 8), attention=use_attention, out_dim=2*horizon, final_sigmoid=True)
+cbf_model = ValueFunction(horizon, transition_dim, dim=32, dim_mults=(1, 2, 4, 8), attention=use_attention, out_dim=args.num_classes*horizon, final_sigmoid=True)
 cbf_diffusion = CbfGuide(cbf_model)
 ema_cbf_diffusion = copy.deepcopy(cbf_diffusion).cuda()
-#checkpoint = torch.load(save_pth_dir + '/random_policy/200_epochs/CbfDiff_Model_latest.pth')
-#checkpoint = torch.load(save_pth_dir + '/CbfDiff_Model_latest.pth')
-#checkpoint = torch.load(save_pth_dir + '/optimal_policy/CbfDiff_Model_latest.pth')
-
-#checkpoint = torch.load(save_pth_dir + '/CbfDiff_Model_22-05-2023_15h-34m-07s.pth')
-checkpoint = torch.load(save_pth_dir + '/CbfDiff_Model_latest.pth')
-
+checkpoint = torch.load(save_pth_dir + '/CbfDiff_Model_best.pth')
 cbf_diffusion.model.load_state_dict(checkpoint['model'])
 ema_cbf_diffusion.model.load_state_dict(checkpoint['ema_model'])
 
-batch_size = 64
+batch_size = args.batch_size
 x_start = np.zeros((batch_size, horizon, transition_dim))
-nr_targets = 1
+nr_targets = args.num_targets
 
 cond = {}
 frames = []
@@ -188,7 +204,8 @@ for episode in range(nr_targets):
             samples = ema_diffusion(cond, guide=ema_value_diffusion,
                                 sample_fn=n_step_guided_p_sample)
         else:
-            samples = ema_diffusion(cond, guide=[ema_value_diffusion, ema_cbf_diffusion], sample_fn=n_step_doubleguided_p_sample)
+            samples = ema_diffusion(cond, guide=[ema_value_diffusion, ema_cbf_diffusion],
+                                    sample_fn=n_step_doubleguided_p_sample)
         action = samples.trajectories[0, 0, 0:action_dim].cpu().numpy()
         value = samples.values.cpu().numpy()
         print("value", value[0])

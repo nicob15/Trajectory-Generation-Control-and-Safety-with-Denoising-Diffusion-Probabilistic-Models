@@ -1,13 +1,9 @@
 import torch
 import torch.nn as nn
-import pdb
 from diffuser.models.helpers import (
     extract,
     apply_conditioning,
 )
-
-import diffuser.utils as utils
-import einops
 
 class ValueGuide(nn.Module):
 
@@ -46,13 +42,8 @@ class CbfGuide(nn.Module):
         selected = log_probs[range(len(y2)), labels.view(-1).type(torch.long)]
         grad = torch.autograd.grad([selected.reshape(y.shape[0], -1).sum()], [x])[0]
         x.detach()
-        # torch.nn.functional.softmax(y2, dim=-1).reshape(y.shape[0], -1)
         return y, grad
 
-    # logits = classifier(x_in, t)
-    # log_probs = F.log_softmax(logits, dim=-1)
-    # selected = log_probs[range(len(logits)), y.view(-1)]
-    # return th.autograd.grad(selected.sum(), x_in)[0] * args.classifier_scale
 
 @torch.no_grad()
 def n_step_guided_p_sample(
@@ -64,7 +55,6 @@ def n_step_guided_p_sample(
 
     for _ in range(n_guide_steps):
         with torch.enable_grad():
-            #y, grad = guide.gradients(x[:, :, 1:], cond, t)
             y, grad = guide.gradients(x, cond, t)
 
         if scale_grad_by_std:
@@ -73,7 +63,6 @@ def n_step_guided_p_sample(
         grad[t < t_stopgrad] = 0
 
         x = x + scale * grad
-        #x[:, :, 1:] = x[:, :, 1:] + scale * grad
         x = apply_conditioning(x, cond, model.action_dim)
 
     model_mean, _, model_log_variance = model.p_mean_variance(x=x, cond=cond, t=t)
@@ -99,8 +88,6 @@ def n_step_doubleguided_p_sample(
 
         if scale_grad_by_std:
             # scale_grad1 = torch.abs(grad0.sum()) / torch.abs(grad1.sum())
-            # print("grad scale", scale_grad1)
-            # print("t", t)
             grad0 = model_var * grad0
             #grad1 = model_var * scale_grad1 * grad1
             grad1 = model_var * grad1
