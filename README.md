@@ -44,15 +44,13 @@ python guided_planning.py
 ## Cite
 If you use this code in your own work, please cite our paper:
 ```
-@article{botteghi2022deep,
-  title={Deep kernel learning of dynamical models from high-dimensional noisy data},
-  author={Botteghi, Nicol{\`o} and Guo, Mengwu and Brune, Christoph},
-  journal={Scientific reports},
-  volume={12},
-  number={1},
-  pages={21530},
-  year={2022},
-  publisher={Nature Publishing Group UK London}
+@misc{botteghi2023trajectory,
+      title={Trajectory Generation, Control, and Safety with Denoising Diffusion Probabilistic Models}, 
+      author={Nicolò Botteghi and Federico Califano and Mannes Poel and Christoph Brune},
+      year={2023},
+      eprint={2306.15512},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO}
 }
 
 ```
