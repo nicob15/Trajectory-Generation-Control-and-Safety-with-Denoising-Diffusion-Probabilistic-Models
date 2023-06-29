@@ -6,7 +6,7 @@ Code accompanying the paper:
 Nicolò Botteghi, Federico Califano, Mannes Poel, Christoph Brune. \
 
 The paper has been accepted at New Frontiers in Learning, Control, and Dynamical Systems - Workshop at the International Conference on Machine Learning (ICML) 2023. \
-The paper can be found at: [Link](add link to arxiv). 
+The paper can be found at: [Link](https://arxiv.org/abs/2306.15512). 
 
 ![alt text](Figure_1.png)
 
